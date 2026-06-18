@@ -1,0 +1,27 @@
+[build-system]
+requires = [
+    "setuptools>=80.9.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "docassemble.MATCMotionToAmend"
+version = "1.0.0"
+description = "A guided interview to convert a Massachusetts 1B divorce complaint to a 1A joint petition."
+readme = "README.md"
+authors = [
+    { name = "", email = "alara.akisik@su.suffolk.edu" },
+]
+dependencies = []
+license = "MIT"
+license-files = [
+    "LICENSE",
+]
+
+[project.urls]
+Homepage = "https://courtformsonline.org"
+
+[tool.setuptools.packages.find]
+where = [
+    ".",
+]

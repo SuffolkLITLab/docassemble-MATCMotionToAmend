@@ -1,0 +1,488 @@
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALMassachusetts:al_massachusetts.yml
+---
+metadata:
+  title: >-
+    Convert Your 1B Divorce to a 1A Joint Petition
+  short title: >-
+    Motion to Amend to 1A
+  description: |
+    Use this interview to ask the Probate and Family Court to convert your
+    contested 1B divorce into a joint 1A no-fault divorce under
+    M.G.L. c. 208, § 1A.
+
+    It will help you complete a **Motion to Amend 1B Divorce Complaint to
+    1A Joint Petition** and prepare it for filing.
+  can_I_use_this_form: |
+    You can use this interview if:
+
+    * You are the **plaintiff** in a pending 1B divorce case in a
+      Massachusetts Probate and Family Court, **and**
+    * **Both** you and your spouse now agree to convert the case to a joint
+      1A petition.
+  before_you_start: |
+    Before you get started, please gather:
+
+    1. The **docket number** from your original 1B divorce complaint
+    1. The **date and city or town** where the irretrievable breakdown of
+       your marriage occurred
+    1. The **date your original 1B complaint was filed** with the court
+    1. Contact information for whoever will sign for the plaintiff
+       (you or your attorney)
+    1. Contact information for whoever will sign for the defendant
+       (the defendant or their attorney)
+
+    When you are finished, you will need to:
+
+    1. Print the motion
+    1. The plaintiff's side signs the top signature block
+    1. The defendant's side signs the "Assented To" block
+    1. File the completed motion with your Probate and Family Court
+  maturity: production
+  estimated_completion_minutes: 10
+  estimated_completion_delta: 5
+  languages:
+    - en
+  LIST_topics:
+    - FA-00-00-00-00
+    - FA-06-00-00-00
+  tags:
+    - FA-00-00-00-00
+    - FA-06-00-00-00
+  jurisdiction: NAM-US-US+MA
+  original_form: []
+  original_form_published_on: ""
+  review_date: 2027-06-18
+  form_titles:
+    - Motion to Amend 1B Divorce Complaint to 1A Joint Petition
+  form_numbers: []
+  fees:
+    - Filing fee: 0
+  authors:
+    - name: ""
+      organization: Suffolk LIT Lab
+  allowed_courts:
+    - "Probate and Family Court"
+  typical_role: "plaintiff"
+  al_weaver_version: "1.11.0"
+  generated_on: "2026-06-18"
+  update_notes: |
+---
+code: |
+  AL_DEFAULT_COUNTRY = "US"
+---
+code: |
+  AL_DEFAULT_STATE = "MA"
+---
+code: |
+  interview_short_title = "Convert Your 1B Divorce to a 1A Joint Petition"
+---
+code: |
+  al_form_type = "existing_case"
+---
+objects:
+  - users: ALPeopleList.using(ask_number=True, target_number=1)
+  - other_parties: ALPeopleList.using(ask_number=True, target_number=1)
+---
+sections:
+  - section_intro: Introduction
+  - section_parties: Parties
+  - section_case: Case Details
+  - section_signing: Signing Information
+  - review_motion_to_amend: Review your answers
+---
+#################### Interview order #####################
+id: interview_order_motion_to_amend
+code: |
+  allowed_courts = ['Probate and Family Court']
+  nav.set_section("section_intro")
+  user_role = "plaintiff"
+  user_ask_role = "plaintiff"
+
+  al_intro_screen
+  motion_to_amend_intro
+
+  nav.set_section("section_parties")
+  users[0].name.first
+  set_parts(subtitle=str(users))
+  other_parties[0].name.first
+
+  nav.set_section("section_case")
+  trial_court.division
+  docket_number
+  set_progress(30)
+  breakdown_date
+  breakdown_location
+  action_commenced_date
+  set_progress(50)
+
+  nav.set_section("section_signing")
+  plaintiff_has_attorney
+  if plaintiff_has_attorney:
+    attorney_name
+    attorney_address_line1
+    attorney_address_line2
+    attorney_phone
+  else:
+    users[0].address.address
+    users[0].phone_number
+
+  set_progress(70)
+  defendant_has_attorney
+  if defendant_has_attorney:
+    assenting_party_name
+    assenting_party_address_line1
+    assenting_party_address_line2
+    assenting_party_phone
+  else:
+    other_parties[0].address.address
+    other_parties[0].phone_number
+
+  set_progress(90)
+  if not plaintiff_has_attorney:
+    users[0].signature
+  if not defendant_has_attorney:
+    other_parties[0].signature
+  else:
+    assenting_attorney_signature
+
+  signature_date
+  interview_order_motion_to_amend = True
+---
+###################### Main order ######################
+mandatory: True
+code: |
+  al_intro_screen
+  motion_to_amend_intro
+  interview_order_motion_to_amend
+  signature_date
+  store_variables_snapshot(
+      persistent=True,
+      data={
+          "zip": showifdef("users[0].address.zip"),
+          "reached_interview_end": True,
+      },
+  )
+  motion_to_amend_download
+---
+code: |
+  addresses_to_search = []
+---
+code: |
+  signature_fields = []
+  if not plaintiff_has_attorney:
+    signature_fields.append('users[0].signature')
+  if not defendant_has_attorney:
+    signature_fields.append('other_parties[0].signature')
+---
+id: intro screen
+continue button field: motion_to_amend_intro
+question: |
+  Convert your 1B divorce to a joint 1A petition
+subquestion: |
+  This interview will help you prepare a **Motion to Amend 1B Divorce
+  Complaint to 1A Joint Petition** to file with the Massachusetts Probate
+  and Family Court.
+
+  Filing this motion asks the court to treat your divorce as a **joint,
+  no-fault case** under M.G.L. c. 208, § 1A — instead of the contested
+  1B complaint that was originally filed.
+
+  **Both spouses must agree.** The defendant's side will sign the
+  "Assented To" section on the printed form before filing.
+
+  Before you get started, please gather:
+
+  1. The docket number from your original 1B complaint
+  1. The date and location of the irretrievable breakdown of the marriage
+  1. The date the original 1B complaint was filed
+  1. Contact information for whoever signs for the plaintiff
+  1. Contact information for whoever signs for the defendant
+
+  Most people take about **10 minutes** to complete this interview.
+---
+id: plaintiff name
+question: |
+  What is the **plaintiff's** name?
+subquestion: |
+  Enter the name of the person who filed the original 1B divorce complaint.
+fields:
+  - First name: users[0].name.first
+  - Middle name: users[0].name.middle
+    required: False
+  - Last name: users[0].name.last
+---
+id: defendant name
+question: |
+  What is the **defendant's** name?
+subquestion: |
+  Enter the name of the other spouse in this case.
+fields:
+  - First name: other_parties[0].name.first
+  - Middle name: other_parties[0].name.middle
+    required: False
+  - Last name: other_parties[0].name.last
+---
+id: case information
+question: |
+  Case information
+subquestion: |
+  Enter the docket number from your original 1B divorce complaint exactly
+  as it appears on your court paperwork.
+fields:
+  - "Docket number": docket_number
+    hint: e.g., BR-2024-D-0123
+---
+id: breakdown details
+question: |
+  When and where did the marriage irretrievably break down?
+subquestion: |
+  Paragraph 5 of the amended complaint will state when and where the
+  irretrievable breakdown of the marriage occurred.
+fields:
+  - "Date of irretrievable breakdown": breakdown_date
+    datatype: date
+  - "City or town where the breakdown occurred": breakdown_location
+    hint: e.g., Fall River, Massachusetts
+---
+id: action commenced date
+question: |
+  When was the original 1B complaint filed?
+subquestion: |
+  The motion asks the court to allow filing of the Separation Agreement
+  and Affidavits of Irretrievable Breakdown after 90 days from when
+  this action was commenced.
+
+  Enter the date the original 1B complaint was filed with the court.
+fields:
+  - "Date the original 1B action was commenced": action_commenced_date
+    datatype: date
+---
+id: plaintiff has attorney
+question: |
+  Is the plaintiff represented by an attorney?
+fields:
+  - "Does the plaintiff have an attorney for this case?": plaintiff_has_attorney
+    datatype: yesnoradio
+---
+id: attorney information
+question: |
+  Plaintiff's attorney
+subquestion: |
+  Enter the contact information for the plaintiff's attorney. This will
+  appear on the signature block of the motion.
+fields:
+  - "Attorney's full name": attorney_name
+  - "Street address": attorney_address_line1
+    hint: e.g., 100 Main Street, Suite 200
+  - "City, state, and zip": attorney_address_line2
+    hint: e.g., Fall River, MA 02720
+  - "Phone number": attorney_phone
+    hint: e.g., (508) 555-0100
+---
+id: pro se plaintiff contact
+question: |
+  Plaintiff contact information
+subquestion: |
+  Since the plaintiff is self-represented, their name, address, and phone
+  number will appear on the motion's signature block instead of an attorney's.
+fields:
+  - Street address: users[0].address.address
+  - Unit/Apt: users[0].address.unit
+    required: False
+  - City: users[0].address.city
+  - State: users[0].address.state
+    code: states_list()
+    default: MA
+  - Zip code: users[0].address.zip
+  - Phone number: users[0].phone_number
+    hint: e.g., (508) 555-0100
+---
+id: defendant has attorney
+question: |
+  Is the defendant represented by an attorney?
+fields:
+  - "Does the defendant have an attorney for this case?": defendant_has_attorney
+    datatype: yesnoradio
+---
+id: assenting party information
+question: |
+  Defendant's attorney information
+subquestion: |
+  The defendant's attorney will sign the **"Assented To"** section. Enter
+  their contact information.
+fields:
+  - "Attorney's full name": assenting_party_name
+  - "Street address": assenting_party_address_line1
+    hint: e.g., 200 Elm Street
+  - "City, state, and zip": assenting_party_address_line2
+    hint: e.g., Taunton, MA 02780
+  - "Phone number": assenting_party_phone
+    hint: e.g., (508) 555-0200
+---
+id: pro se defendant contact
+question: |
+  Defendant contact information
+subquestion: |
+  Since the defendant is self-represented, their name, address, and phone
+  number will appear in the "Assented To" section of the motion.
+fields:
+  - Street address: other_parties[0].address.address
+  - Unit/Apt: other_parties[0].address.unit
+    required: False
+  - City: other_parties[0].address.city
+  - State: other_parties[0].address.state
+    code: states_list()
+    default: MA
+  - Zip code: other_parties[0].address.zip
+  - Phone number: other_parties[0].phone_number
+    hint: e.g., (508) 555-0200
+---
+id: assenting attorney signature
+question: |
+  Signature of ${ assenting_party_name }
+subquestion: |
+  ${ assenting_party_name }, please sign below to confirm that the defendant
+  agrees to convert this case to a 1A joint petition.
+fields:
+  - Sign your name: assenting_attorney_signature
+    datatype: signature
+---
+id: preview motion_to_amend
+question: |
+  Preview your motion before you finalize it
+subquestion: |
+  Here is a preview of the motion you will download on the next page.
+
+  ${ al_court_bundle.as_pdf(key='preview') }
+
+  Click the image to open it in a new tab. Click the **Edit answers**
+  button to fix any mistakes.
+
+  ${ action_button_html(url_action('review_motion_to_amend'), label='Edit answers', color='info') }
+
+  Remember to come back to this window to continue.
+continue button field: motion_to_amend_preview_question
+---
+id: review motion_to_amend
+event: review_motion_to_amend
+question: |
+  Review your answers
+review:
+  - Edit: trial_court
+    button: |
+      **Court**:
+      % if defined("trial_court.division"):
+      ${ trial_court.division }
+      % endif
+  - Edit: docket_number
+    button: |
+      **Docket number**: ${ docket_number }
+  - Edit: users[0].name.first
+    button: |
+      **Plaintiff**: ${ users[0] }
+  - Edit: other_parties[0].name.first
+    button: |
+      **Defendant**: ${ other_parties[0] }
+  - Edit: breakdown_date
+    button: |
+      **Date of irretrievable breakdown**: ${ breakdown_date }
+  - Edit: breakdown_location
+    button: |
+      **Location of breakdown**: ${ breakdown_location }
+  - Edit: action_commenced_date
+    button: |
+      **Date original 1B action commenced**: ${ action_commenced_date }
+  - Edit: plaintiff_has_attorney
+    button: |
+      **Plaintiff has attorney**: ${ word(yesno(plaintiff_has_attorney)) }
+  - Edit: attorney_name
+    button: |
+      **Plaintiff's attorney**: ${ attorney_name }
+    show if: plaintiff_has_attorney
+  - Edit: attorney_address_line1
+    button: |
+      **Attorney address**: ${ attorney_address_line1 }, ${ attorney_address_line2 }
+    show if: plaintiff_has_attorney
+  - Edit: attorney_phone
+    button: |
+      **Attorney phone**: ${ attorney_phone }
+    show if: plaintiff_has_attorney
+  - Edit: users[0].address.address
+    button: |
+      **Plaintiff address**: ${ users[0].address.on_one_line() }
+    show if: not plaintiff_has_attorney
+  - Edit: users[0].phone_number
+    button: |
+      **Plaintiff phone**: ${ users[0].phone_number }
+    show if: not plaintiff_has_attorney
+  - Edit: defendant_has_attorney
+    button: |
+      **Defendant has attorney**: ${ word(yesno(defendant_has_attorney)) }
+  - Edit: assenting_party_name
+    button: |
+      **Defendant's attorney**: ${ assenting_party_name }
+    show if: defendant_has_attorney
+  - Edit: assenting_party_address_line1
+    button: |
+      **Defendant attorney address**: ${ assenting_party_address_line1 }, ${ assenting_party_address_line2 }
+    show if: defendant_has_attorney
+  - Edit: assenting_party_phone
+    button: |
+      **Defendant attorney phone**: ${ assenting_party_phone }
+    show if: defendant_has_attorney
+  - Edit: other_parties[0].address.address
+    button: |
+      **Defendant address**: ${ other_parties[0].address.on_one_line() }
+    show if: not defendant_has_attorney
+  - Edit: other_parties[0].phone_number
+    button: |
+      **Defendant phone**: ${ other_parties[0].phone_number }
+    show if: not defendant_has_attorney
+  - Edit: signature_date
+    button: |
+      **Date**: ${ signature_date }
+---
+id: download motion_to_amend
+event: motion_to_amend_download
+question: |
+  Your motion is ready to download
+subquestion: |
+  Thank you, ${ users[0] }. Your motion is ready to download and print.
+
+  **Next steps:**
+
+  1. Print the motion
+  % if plaintiff_has_attorney:
+  1. Your attorney signs the top signature block
+  % else:
+  1. You sign the top signature block (your signature has been added to the form)
+  % endif
+  1. The defendant's side signs the "Assented To" block
+  1. File the completed motion with the ${ trial_court }
+
+  ${ action_button_html(url_action('review_motion_to_amend'), label='Edit answers', color='info') }
+
+  ${ al_user_bundle.download_list_html() }
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
+progress: 100
+---
+# ALDocument objects
+objects:
+  - motion_to_amend_attachment: ALDocument.using(title="Motion to Amend 1B Divorce Complaint to 1A Joint Petition", filename="motion_to_amend_1b_to_1a", enabled=True, has_addendum=False)
+---
+# Bundles
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[motion_to_amend_attachment], filename="motion_to_amend_1b_to_1a", title="All forms to download for your records", enabled=True)
+  - al_court_bundle: ALDocumentBundle.using(elements=[motion_to_amend_attachment], filename="motion_to_amend_1b_to_1a", title="All forms to deliver to court", enabled=True)
+---
+attachment:
+  name: Motion to Amend 1B Divorce Complaint to 1A Joint Petition
+  filename: motion_to_amend_1b_to_1a
+  variable name: motion_to_amend_attachment[i]
+  skip undefined: True
+  docx template file: motion_to_amend.docx
+  tagged pdf: True
