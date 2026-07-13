@@ -46,7 +46,7 @@ def find_package_data(where='.', package='', exclude=standard_exclude, exclude_d
 setup(name='docassemble.MATCMotionToAmend',
       version='1.0.0',
       description=('A guided interview to convert a Massachusetts 1B divorce complaint to a 1A joint petition.'),
-      long_description='# docassemble.MATCMotionToAmend\n\nA guided interview to convert a Massachusetts 1B divorce complaint to a 1A joint petition.\n\n## Author\n\nalara.akisik@su.suffolk.edu\n\n',
+      long_description='# docassemble.MATCMotionToAmend\r\n\r\nA guided interview to convert a Massachusetts 1B divorce complaint to a 1A joint petition.\r\n\r\n## Author\r\n\r\nalara.akisik@su.suffolk.edu\r\n\r\n',
       long_description_content_type='text/markdown',
       author='',
       author_email='alara.akisik@su.suffolk.edu',

@@ -3,205 +3,107 @@ include:
   - docassemble.AssemblyLine:assembly_line.yml
   - docassemble.ALMassachusetts:al_massachusetts.yml
 ---
-metadata:
-  title: >-
-    Convert Your 1B Divorce to a 1A Joint Petition
-  short title: >-
-    Motion to Amend to 1A
-  description: |
-    Use this interview to ask the Probate and Family Court to convert your
-    contested 1B divorce into a joint 1A no-fault divorce under
-    M.G.L. c. 208, § 1A.
-
-    It will help you complete a **Motion to Amend 1B Divorce Complaint to
-    1A Joint Petition** and prepare it for filing.
-  can_I_use_this_form: |
-    You can use this interview if:
-
-    * You are the **plaintiff** in a pending 1B divorce case in a
-      Massachusetts Probate and Family Court, **and**
-    * **Both** you and your spouse now agree to convert the case to a joint
-      1A petition.
-  before_you_start: |
-    Before you get started, please gather:
-
-    1. The **docket number** from your original 1B divorce complaint
-    1. The **date and city or town** where the irretrievable breakdown of
-       your marriage occurred
-    1. The **date your original 1B complaint was filed** with the court
-    1. Contact information for whoever will sign for the plaintiff
-       (you or your attorney)
-    1. Contact information for whoever will sign for the defendant
-       (the defendant or their attorney)
-
-    When you are finished, you will need to:
-
-    1. Print the motion
-    1. The plaintiff's side signs the top signature block
-    1. The defendant's side signs the "Assented To" block
-    1. File the completed motion with your Probate and Family Court
-  maturity: production
-  estimated_completion_minutes: 10
-  estimated_completion_delta: 5
-  languages:
-    - en
-  LIST_topics:
-    - FA-00-00-00-00
-    - FA-06-00-00-00
-  tags:
-    - FA-00-00-00-00
-    - FA-06-00-00-00
-  jurisdiction: NAM-US-US+MA
-  original_form: []
-  original_form_published_on: ""
-  review_date: 2027-06-18
-  form_titles:
-    - Motion to Amend 1B Divorce Complaint to 1A Joint Petition
-  form_numbers: []
-  fees:
-    - Filing fee: 0
-  authors:
-    - name: ""
-      organization: Suffolk LIT Lab
-  allowed_courts:
-    - "Probate and Family Court"
-  typical_role: "plaintiff"
-  al_weaver_version: "1.11.0"
-  generated_on: "2026-06-18"
-  update_notes: |
----
 code: |
   AL_DEFAULT_COUNTRY = "US"
 ---
 code: |
   AL_DEFAULT_STATE = "MA"
 ---
-code: |
-  interview_short_title = "Convert Your 1B Divorce to a 1A Joint Petition"
----
-code: |
-  al_form_type = "existing_case"
----
 objects:
-  - users: ALPeopleList.using(ask_number=True, target_number=1)
-  - other_parties: ALPeopleList.using(ask_number=True, target_number=1)
+  - users: ALPeopleList.using(ask_number=False, target_number=2)
+  - attorneys: ALPeopleList.using(ask_number=False)
 ---
-sections:
-  - section_intro: Introduction
-  - section_parties: Parties
-  - section_case: Case Details
-  - section_signing: Signing Information
-  - review_motion_to_amend: Review your answers
+code: |
+  addresses_to_search = []
 ---
 #################### Interview order #####################
+comment: |
+  Controls order and branching logic for questions specific to this form.
+  Can be run on its own (see main_motion_to_amend.yml) or included by another
+  interview (e.g. docassemble-MATC1ADivorceJointPetition) as the conditional
+  first step when the parties already have an existing 1B case.
+
+  Note: docassemble can't resolve a question's field target through a
+  computed list index (e.g. users[plaintiff_index]) -- it only matches
+  literal indices. So users[0]/users[1]/attorneys[0]/attorneys[1] are used
+  as the literal field targets throughout, and plaintiff_index/defendant_index
+  (0 or 1) are only ever used in plain code, in question *text*, and in the
+  docx template -- never as a field target.
 id: interview_order_motion_to_amend
 code: |
   allowed_courts = ['Probate and Family Court']
-  nav.set_section("section_intro")
   user_role = "plaintiff"
   user_ask_role = "plaintiff"
 
-  al_intro_screen
-  motion_to_amend_intro
-
-  nav.set_section("section_parties")
+  # "section_parties" etc. only exist in main_motion_to_amend.yml's own nav
+  # (standalone use). When this file is included by another interview
+  # (e.g. the Joint Petition), has_existing_1b_action is defined and that
+  # interview manages its own nav sections instead.
+  if not defined("has_existing_1b_action"):
+    nav.set_section("section_parties")
   users[0].name.first
-  set_parts(subtitle=str(users))
-  other_parties[0].name.first
+  users[1].name.first
 
-  nav.set_section("section_case")
+  if defined("has_existing_1b_action") and not plaintiff_is_party_a:
+    users.elements[0], users.elements[1] = users.elements[1], users.elements[0]
+    plaintiff_index = 1
+  else:
+    plaintiff_index = 0
+  defendant_index = 1 - plaintiff_index
+
+  if not defined("has_existing_1b_action"):
+    nav.set_section("section_case")
   trial_court.division
   docket_number
   set_progress(30)
-  breakdown_date
+  marriage_breakdown_date
   breakdown_location
   action_commenced_date
   set_progress(50)
 
-  nav.set_section("section_signing")
-  plaintiff_has_attorney
-  if plaintiff_has_attorney:
-    attorney_name
-    attorney_address_line1
-    attorney_address_line2
-    attorney_phone
+  if not defined("has_existing_1b_action"):
+    nav.set_section("section_signing")
+  users[0].has_attorney
+  if users[0].has_attorney:
+    attorneys[0].name_fields()
+    attorneys[0].address_fields()
+    attorneys[0].phone_number
+    attorneys[0].bbo_number
   else:
     users[0].address.address
     users[0].phone_number
 
   set_progress(70)
-  defendant_has_attorney
-  if defendant_has_attorney:
-    assenting_party_name
-    assenting_party_address_line1
-    assenting_party_address_line2
-    assenting_party_phone
+  users[1].has_attorney
+  if users[1].has_attorney:
+    attorneys[1].name_fields()
+    attorneys[1].address_fields()
+    attorneys[1].phone_number
+    attorneys[1].bbo_number
   else:
-    other_parties[0].address.address
-    other_parties[0].phone_number
+    users[1].address.address
+    users[1].phone_number
 
   set_progress(90)
-  if not plaintiff_has_attorney:
-    users[0].signature
-  if not defendant_has_attorney:
-    other_parties[0].signature
+  # The plaintiff's attorney (if repped) never e-signs here -- only the
+  # plaintiff themselves, if pro se. The defendant's side always provides
+  # some signature: the defendant if pro se, otherwise their attorney.
+  if plaintiff_index == 0:
+    if not users[0].has_attorney:
+      users[0].signature
+    if not users[1].has_attorney:
+      users[1].signature
+    else:
+      attorneys[1].signature
   else:
-    assenting_attorney_signature
+    if not users[1].has_attorney:
+      users[1].signature
+    if not users[0].has_attorney:
+      users[0].signature
+    else:
+      attorneys[0].signature
 
-  signature_date
   interview_order_motion_to_amend = True
----
-###################### Main order ######################
-mandatory: True
-code: |
-  al_intro_screen
-  motion_to_amend_intro
-  interview_order_motion_to_amend
-  signature_date
-  store_variables_snapshot(
-      persistent=True,
-      data={
-          "zip": showifdef("users[0].address.zip"),
-          "reached_interview_end": True,
-      },
-  )
-  motion_to_amend_download
----
-code: |
-  addresses_to_search = []
----
-code: |
-  signature_fields = []
-  if not plaintiff_has_attorney:
-    signature_fields.append('users[0].signature')
-  if not defendant_has_attorney:
-    signature_fields.append('other_parties[0].signature')
----
-id: intro screen
-continue button field: motion_to_amend_intro
-question: |
-  Convert your 1B divorce to a joint 1A petition
-subquestion: |
-  This interview will help you prepare a **Motion to Amend 1B Divorce
-  Complaint to 1A Joint Petition** to file with the Massachusetts Probate
-  and Family Court.
-
-  Filing this motion asks the court to treat your divorce as a **joint,
-  no-fault case** under M.G.L. c. 208, § 1A — instead of the contested
-  1B complaint that was originally filed.
-
-  **Both spouses must agree.** The defendant's side will sign the
-  "Assented To" section on the printed form before filing.
-
-  Before you get started, please gather:
-
-  1. The docket number from your original 1B complaint
-  1. The date and location of the irretrievable breakdown of the marriage
-  1. The date the original 1B complaint was filed
-  1. Contact information for whoever signs for the plaintiff
-  1. Contact information for whoever signs for the defendant
-
-  Most people take about **10 minutes** to complete this interview.
 ---
 id: plaintiff name
 question: |
@@ -220,10 +122,27 @@ question: |
 subquestion: |
   Enter the name of the other spouse in this case.
 fields:
-  - First name: other_parties[0].name.first
-  - Middle name: other_parties[0].name.middle
+  - First name: users[1].name.first
+  - Middle name: users[1].name.middle
     required: False
-  - Last name: other_parties[0].name.last
+  - Last name: users[1].name.last
+---
+id: plaintiff party letter
+question: |
+  Who do you want listed first in your joint petition?
+subquestion: |
+  You're about to prepare a joint petition alongside this motion. That
+  petition lists one spouse as "Party A" (listed first) and the other as
+  "Party B."
+
+  This has no legal effect on the motion itself — it only controls the
+  order the two of you appear in on the joint petition.
+fields:
+  - "Who do you want listed as Party A?": plaintiff_is_party_a
+    datatype: radio
+    choices:
+      - "${ users[0] } (the plaintiff on the 1B case)": True
+      - "${ users[1] } (the defendant on the 1B case)": False
 ---
 id: case information
 question: |
@@ -242,7 +161,7 @@ subquestion: |
   Paragraph 5 of the amended complaint will state when and where the
   irretrievable breakdown of the marriage occurred.
 fields:
-  - "Date of irretrievable breakdown": breakdown_date
+  - "Date of irretrievable breakdown": marriage_breakdown_date
     datatype: date
   - "City or town where the breakdown occurred": breakdown_location
     hint: e.g., Fall River, Massachusetts
@@ -260,34 +179,45 @@ fields:
   - "Date the original 1B action was commenced": action_commenced_date
     datatype: date
 ---
-id: plaintiff has attorney
+id: attorney status for first party
 question: |
-  Is the plaintiff represented by an attorney?
+  Is ${ users[0] } represented by an attorney?
+subquestion: |
+  % if plaintiff_index == 0:
+  ${ users[0] } is the **plaintiff** on the original 1B case.
+  % else:
+  ${ users[0] } is the **defendant** on the original 1B case.
+  % endif
 fields:
-  - "Does the plaintiff have an attorney for this case?": plaintiff_has_attorney
+  - "Does ${ users[0] } have an attorney for this case?": users[0].has_attorney
     datatype: yesnoradio
 ---
-id: attorney information
+id: attorney information for first party
+sets:
+  attorneys[0].name.first
+  attorneys[0].address.address
+  attorneys[0].phone_number
+  attorneys[0].bbo_number
 question: |
-  Plaintiff's attorney
+  Attorney for ${ users[0] }
 subquestion: |
-  Enter the contact information for the plaintiff's attorney. This will
+  Enter the contact information for ${ users[0] }'s attorney. This will
   appear on the signature block of the motion.
 fields:
-  - "Attorney's full name": attorney_name
-  - "Street address": attorney_address_line1
-    hint: e.g., 100 Main Street, Suite 200
-  - "City, state, and zip": attorney_address_line2
-    hint: e.g., Fall River, MA 02720
-  - "Phone number": attorney_phone
-    hint: e.g., (508) 555-0100
+  - code: |
+      attorneys[0].name_fields()
+  - code: |
+      attorneys[0].address_fields()
+  - "Attorney phone number": attorneys[0].phone_number
+    datatype: tel
+  - "Board of Bar Overseers (BBO) Number": attorneys[0].bbo_number
 ---
-id: pro se plaintiff contact
+id: pro se contact for first party
 question: |
-  Plaintiff contact information
+  Contact information for ${ users[0] }
 subquestion: |
-  Since the plaintiff is self-represented, their name, address, and phone
-  number will appear on the motion's signature block instead of an attorney's.
+  Since ${ users[0] } is self-represented, their name, address, and phone
+  number will appear on the motion.
 fields:
   - Street address: users[0].address.address
   - Unit/Apt: users[0].address.unit
@@ -300,184 +230,80 @@ fields:
   - Phone number: users[0].phone_number
     hint: e.g., (508) 555-0100
 ---
-id: defendant has attorney
+id: attorney status for second party
 question: |
-  Is the defendant represented by an attorney?
+  Is ${ users[1] } represented by an attorney?
+subquestion: |
+  % if plaintiff_index == 1:
+  ${ users[1] } is the **plaintiff** on the original 1B case.
+  % else:
+  ${ users[1] } is the **defendant** on the original 1B case.
+  % endif
 fields:
-  - "Does the defendant have an attorney for this case?": defendant_has_attorney
+  - "Does ${ users[1] } have an attorney for this case?": users[1].has_attorney
     datatype: yesnoradio
 ---
-id: assenting party information
+id: attorney information for second party
+sets:
+  attorneys[1].name.first
+  attorneys[1].address.address
+  attorneys[1].phone_number
+  attorneys[1].bbo_number
 question: |
-  Defendant's attorney information
+  Attorney for ${ users[1] }
 subquestion: |
-  The defendant's attorney will sign the **"Assented To"** section. Enter
-  their contact information.
+  Enter the contact information for ${ users[1] }'s attorney. This will
+  appear on the signature block of the motion.
 fields:
-  - "Attorney's full name": assenting_party_name
-  - "Street address": assenting_party_address_line1
-    hint: e.g., 200 Elm Street
-  - "City, state, and zip": assenting_party_address_line2
-    hint: e.g., Taunton, MA 02780
-  - "Phone number": assenting_party_phone
-    hint: e.g., (508) 555-0200
+  - code: |
+      attorneys[1].name_fields()
+  - code: |
+      attorneys[1].address_fields()
+  - "Attorney phone number": attorneys[1].phone_number
+    datatype: tel
+  - "Board of Bar Overseers (BBO) Number": attorneys[1].bbo_number
 ---
-id: pro se defendant contact
+id: pro se contact for second party
 question: |
-  Defendant contact information
+  Contact information for ${ users[1] }
 subquestion: |
-  Since the defendant is self-represented, their name, address, and phone
-  number will appear in the "Assented To" section of the motion.
+  Since ${ users[1] } is self-represented, their name, address, and phone
+  number will appear on the motion.
 fields:
-  - Street address: other_parties[0].address.address
-  - Unit/Apt: other_parties[0].address.unit
+  - Street address: users[1].address.address
+  - Unit/Apt: users[1].address.unit
     required: False
-  - City: other_parties[0].address.city
-  - State: other_parties[0].address.state
+  - City: users[1].address.city
+  - State: users[1].address.state
     code: states_list()
     default: MA
-  - Zip code: other_parties[0].address.zip
-  - Phone number: other_parties[0].phone_number
+  - Zip code: users[1].address.zip
+  - Phone number: users[1].phone_number
     hint: e.g., (508) 555-0200
 ---
-id: assenting attorney signature
+id: assenting attorney signature for index 1
 question: |
-  Signature of ${ assenting_party_name }
+  Signature of ${ attorneys[1] }
 subquestion: |
-  ${ assenting_party_name }, please sign below to confirm that the defendant
-  agrees to convert this case to a 1A joint petition.
+  ${ attorneys[1] }, please sign below to confirm that the defendant agrees
+  to convert this case to a 1A joint petition.
 fields:
-  - Sign your name: assenting_attorney_signature
+  - Sign your name: attorneys[1].signature
     datatype: signature
 ---
-id: preview motion_to_amend
+id: assenting attorney signature for index 0
 question: |
-  Preview your motion before you finalize it
+  Signature of ${ attorneys[0] }
 subquestion: |
-  Here is a preview of the motion you will download on the next page.
-
-  ${ al_court_bundle.as_pdf(key='preview') }
-
-  Click the image to open it in a new tab. Click the **Edit answers**
-  button to fix any mistakes.
-
-  ${ action_button_html(url_action('review_motion_to_amend'), label='Edit answers', color='info') }
-
-  Remember to come back to this window to continue.
-continue button field: motion_to_amend_preview_question
----
-id: review motion_to_amend
-event: review_motion_to_amend
-question: |
-  Review your answers
-review:
-  - Edit: trial_court
-    button: |
-      **Court**:
-      % if defined("trial_court.division"):
-      ${ trial_court.division }
-      % endif
-  - Edit: docket_number
-    button: |
-      **Docket number**: ${ docket_number }
-  - Edit: users[0].name.first
-    button: |
-      **Plaintiff**: ${ users[0] }
-  - Edit: other_parties[0].name.first
-    button: |
-      **Defendant**: ${ other_parties[0] }
-  - Edit: breakdown_date
-    button: |
-      **Date of irretrievable breakdown**: ${ breakdown_date }
-  - Edit: breakdown_location
-    button: |
-      **Location of breakdown**: ${ breakdown_location }
-  - Edit: action_commenced_date
-    button: |
-      **Date original 1B action commenced**: ${ action_commenced_date }
-  - Edit: plaintiff_has_attorney
-    button: |
-      **Plaintiff has attorney**: ${ word(yesno(plaintiff_has_attorney)) }
-  - Edit: attorney_name
-    button: |
-      **Plaintiff's attorney**: ${ attorney_name }
-    show if: plaintiff_has_attorney
-  - Edit: attorney_address_line1
-    button: |
-      **Attorney address**: ${ attorney_address_line1 }, ${ attorney_address_line2 }
-    show if: plaintiff_has_attorney
-  - Edit: attorney_phone
-    button: |
-      **Attorney phone**: ${ attorney_phone }
-    show if: plaintiff_has_attorney
-  - Edit: users[0].address.address
-    button: |
-      **Plaintiff address**: ${ users[0].address.on_one_line() }
-    show if: not plaintiff_has_attorney
-  - Edit: users[0].phone_number
-    button: |
-      **Plaintiff phone**: ${ users[0].phone_number }
-    show if: not plaintiff_has_attorney
-  - Edit: defendant_has_attorney
-    button: |
-      **Defendant has attorney**: ${ word(yesno(defendant_has_attorney)) }
-  - Edit: assenting_party_name
-    button: |
-      **Defendant's attorney**: ${ assenting_party_name }
-    show if: defendant_has_attorney
-  - Edit: assenting_party_address_line1
-    button: |
-      **Defendant attorney address**: ${ assenting_party_address_line1 }, ${ assenting_party_address_line2 }
-    show if: defendant_has_attorney
-  - Edit: assenting_party_phone
-    button: |
-      **Defendant attorney phone**: ${ assenting_party_phone }
-    show if: defendant_has_attorney
-  - Edit: other_parties[0].address.address
-    button: |
-      **Defendant address**: ${ other_parties[0].address.on_one_line() }
-    show if: not defendant_has_attorney
-  - Edit: other_parties[0].phone_number
-    button: |
-      **Defendant phone**: ${ other_parties[0].phone_number }
-    show if: not defendant_has_attorney
-  - Edit: signature_date
-    button: |
-      **Date**: ${ signature_date }
----
-id: download motion_to_amend
-event: motion_to_amend_download
-question: |
-  Your motion is ready to download
-subquestion: |
-  Thank you, ${ users[0] }. Your motion is ready to download and print.
-
-  **Next steps:**
-
-  1. Print the motion
-  % if plaintiff_has_attorney:
-  1. Your attorney signs the top signature block
-  % else:
-  1. You sign the top signature block (your signature has been added to the form)
-  % endif
-  1. The defendant's side signs the "Assented To" block
-  1. File the completed motion with the ${ trial_court }
-
-  ${ action_button_html(url_action('review_motion_to_amend'), label='Edit answers', color='info') }
-
-  ${ al_user_bundle.download_list_html() }
-
-  ${ al_user_bundle.send_button_html(show_editable_checkbox=True) }
-progress: 100
+  ${ attorneys[0] }, please sign below to confirm that the defendant agrees
+  to convert this case to a 1A joint petition.
+fields:
+  - Sign your name: attorneys[0].signature
+    datatype: signature
 ---
 # ALDocument objects
 objects:
   - motion_to_amend_attachment: ALDocument.using(title="Motion to Amend 1B Divorce Complaint to 1A Joint Petition", filename="motion_to_amend_1b_to_1a", enabled=True, has_addendum=False)
----
-# Bundles
-objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[motion_to_amend_attachment], filename="motion_to_amend_1b_to_1a", title="All forms to download for your records", enabled=True)
-  - al_court_bundle: ALDocumentBundle.using(elements=[motion_to_amend_attachment], filename="motion_to_amend_1b_to_1a", title="All forms to deliver to court", enabled=True)
 ---
 attachment:
   name: Motion to Amend 1B Divorce Complaint to 1A Joint Petition
