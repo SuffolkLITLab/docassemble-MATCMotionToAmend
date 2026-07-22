@@ -70,7 +70,10 @@ code: |
     attorneys[0].phone_number
     attorneys[0].bbo_number
   else:
-    users[0].address.address
+    # Bare reference to just phone_number (not address.address) so this
+    # resolves uniquely to the "pro se contact" composite block below via
+    # its `sets:` declaration, instead of competing with the generic
+    # library address question for the same variable.
     users[0].phone_number
 
   set_progress(70)
@@ -81,7 +84,7 @@ code: |
     attorneys[1].phone_number
     attorneys[1].bbo_number
   else:
-    users[1].address.address
+    # See comment above for users[0]'s branch.
     users[1].phone_number
 
   set_progress(90)
@@ -213,20 +216,17 @@ fields:
   - "Board of Bar Overseers (BBO) Number": attorneys[0].bbo_number
 ---
 id: pro se contact for first party
+sets:
+  users[0].address.address
+  users[0].phone_number
 question: |
   Contact information for ${ users[0] }
 subquestion: |
   Since ${ users[0] } is self-represented, their name, address, and phone
   number will appear on the motion.
 fields:
-  - Street address: users[0].address.address
-  - Unit/Apt: users[0].address.unit
-    required: False
-  - City: users[0].address.city
-  - State: users[0].address.state
-    code: states_list()
-    default: MA
-  - Zip code: users[0].address.zip
+  - code: |
+      users[0].address_fields(default_state="MA")
   - Phone number: users[0].phone_number
     hint: e.g., (508) 555-0100
 ---
@@ -264,20 +264,17 @@ fields:
   - "Board of Bar Overseers (BBO) Number": attorneys[1].bbo_number
 ---
 id: pro se contact for second party
+sets:
+  users[1].address.address
+  users[1].phone_number
 question: |
   Contact information for ${ users[1] }
 subquestion: |
   Since ${ users[1] } is self-represented, their name, address, and phone
   number will appear on the motion.
 fields:
-  - Street address: users[1].address.address
-  - Unit/Apt: users[1].address.unit
-    required: False
-  - City: users[1].address.city
-  - State: users[1].address.state
-    code: states_list()
-    default: MA
-  - Zip code: users[1].address.zip
+  - code: |
+      users[1].address_fields(default_state="MA")
   - Phone number: users[1].phone_number
     hint: e.g., (508) 555-0200
 ---
